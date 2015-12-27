@@ -2,6 +2,7 @@ import os
 from tinydb import TinyDB, where, Query
 import sys
 import webview
+import easygui
 db = TinyDB('db.json')
 class main():
 	def addcharacter(self):
@@ -23,7 +24,7 @@ class main():
 						try:
 							qualval=int(qualval)
 							if qualval > -1:
-								if qualval <11:
+								if qualval < 11:
 									return qualval
 								else:
 									easygui.msgbox("Must be 10 or less")
@@ -70,9 +71,12 @@ class main():
 						if biomsg==None:
 							addtraits()
 						else:
-							bio=biomsg
+							bio+=biomsg
 							addtraits()
 					elif trait==tc[3]:
+						print powers
+						print weaknesses
+						print bio
 						db.insert({'name': namestr, 'powers': powers, 'weaknesses':weaknesses, 'bio': bio, 'speed':speed, 'stength':strength,'intelligence':intelligence,'stamina':stamina})
 						easygui.msgbox("Done")
 						self.__init__()
@@ -101,6 +105,43 @@ class main():
 	def addstuff(self):
 		easygui.msgbox("Here you can add rules for powers and weaknesses.")
 		options=["Add qualites of powers", "Add rules for powers and weaknesses"]
+		option=easygui.choicebox(msg="Please make a selection",title="Character Database",choice=options)
+		if option==options[0]:
+			powername=easygui.enterbox(msg="Please enter the name of a power you would like to assign traits to.")
+			if powername==None:
+				self.addstuff()
+			else:
+				def getquality(quality):
+					qualval=easygui.enterbox("On a scale from 1-10, what level of {0} is this power worth? If the power does not affect it, enter 0.".format(quality))
+					if qualval==None:
+						self.__init__()
+					else:
+						try:
+							qualval=int(qualval)
+							if qualval > -1:
+								if qualval < 11:
+									return qualval
+								else:
+									easygui.msgbox("Must be 10 or less")
+							else:
+								easygui.msgbox("Must be 0 or greater")
+								getquality(quality)
+						except TypeError:
+							easygui.msgbox("Must be a valid integer")
+				strength=str(getquality('strength'))
+				intelligence=str(getquality('intellignece'))
+				stamina=str(getquality('stamina'))
+				speed=str(getquality('speed'))
+				pf=open("powers.conf",'a')
+				pf.write('{0}=[{"speed":{1},"strength":{2},"intelligence":{3},"stamina":{4}\n'.format(powername,speed,strength,intelligence,stamina))
+				pf.close()
+		elif option==options[1]:
+			easygui.msgbox("Now you can define which powers trump which weaknesses")
+		elif option==None:
+			self.__init__()
+		else:
+			easygui.msgbox("Unrecognized choice {0}. Exiting.".format(option))
+			sys.exit()
 	def remove(self):
 		pass
 	def __init__(self):
