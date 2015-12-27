@@ -1,7 +1,7 @@
-import easygui
 import os
 from tinydb import TinyDB, where, Query
 import sys
+import webview
 db = TinyDB('db.json')
 class main():
 	def addcharacter(self):
@@ -14,6 +14,28 @@ class main():
 				easygui.msgbox("This name already belongs to another character, please choose another name or remove the character with the same name")
 				self.addcharacter()
 			else:
+				easygui.msgbox("You will now enter the characters qualities")
+				def getquality(quality):
+					qualval=easygui.enterbox("On a scale from 1-10, what is the characters {0}?".format(quality))
+					if qualval==None:
+						self.__init__()
+					else:
+						try:
+							qualval=int(qualval)
+							if qualval > -1:
+								if qualval <11:
+									return qualval
+								else:
+									easygui.msgbox("Must be 10 or less")
+							else:
+								easygui.msgbox("Must be 0 or greater")
+								getquality(quality)
+						except TypeError:
+							easygui.msgbox("Must be a valid integer")
+				strength=getquality('strength')
+				intelligence=getquality('intellignece')
+				stamina=getquality('stamina')
+				speed=getquality('speed')
 				easygui.msgbox("In this screen you can add traits. You can come back here as many times as you wish until you click Done.")
 				def addtraits():
 					powers=[]
@@ -51,17 +73,42 @@ class main():
 							bio=biomsg
 							addtraits()
 					elif trait==tc[3]:
-						db.insert({'name': namestr, 'powers': powers, 'weaknesses':weaknesses, 'bio': bio})
+						db.insert({'name': namestr, 'powers': powers, 'weaknesses':weaknesses, 'bio': bio, 'speed':speed, 'stength':strength,'intelligence':intelligence,'stamina':stamina})
 						easygui.msgbox("Done")
 						self.__init__()
 					else:
 						self.__init__()
 				addtraits()
+	def compare(self):
+		names=[]
+		entries=db.all()
+		for item in db[0]:
+			names.append(item['name'])
+		selected=[]
+		def getname():
+			namechoice=easygui.choicebox(msg="Please select a character", title="Character Database",choices=names)
+			if namechoice==None:
+				self.__init__()
+			else:
+				selected.append(namechoice)
+		getname()
+		getname()
+		if easygui.ynbox("Would you like to compare {0} and {1}?".format(selected[0],selected[1])):
+			rules=open('rules.conf').read()
+			powerrules=open('powers.conf').read()
+		else:
+			self.compare()
+	def addstuff(self):
+		easygui.msgbox("Here you can add rules for powers and weaknesses.")
+		options=["Add qualites of powers", "Add rules for powers and weaknesses"]
+	def remove(self):
+		pass
 	def __init__(self):
 		initchoices=[
 		"Add character",
 		"Compare characters",
-		"Remove characters"
+		"Remove characters",
+		"Add powers and weaknesses"
 		]
 		initchoice=easygui.choicebox(msg="Please make a selection",title="Character Database",choices=initchoices)
 		ic=initchoice
@@ -69,9 +116,9 @@ class main():
 		if ic==ics[0]:
 			self.addcharacter()
 		elif ic==ics[1]:
-			pass
+			self.compare()
 		elif ic==ics[2]:
-			pass
+			self.addstuff()
 		elif ic==None:
 			sys.exit()
 		else:
